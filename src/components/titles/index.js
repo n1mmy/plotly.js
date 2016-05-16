@@ -136,16 +136,19 @@ Titles.draw = function(gd, titleClass, options) {
                 shiftSign = (['left','top'].indexOf(avoid.side) !== -1) ?
                     -1 : 1,
                 pad = isNumeric(avoid.pad) ? avoid.pad : 2,
-                titlebb = Drawing.bBox(titleGroup.node()),
                 paperbb = {
                     left: 0,
                     top: 0,
                     right: fullLayout.width,
                     bottom: fullLayout.height
-                },
-                maxshift = avoid.maxShift || (
-                    (paperbb[avoid.side]-titlebb[avoid.side]) *
-                    ((avoid.side === 'left' || avoid.side === 'top') ? -1 : 1));
+                };
+
+            var titlebb = titleGroup.node() ? Drawing.bBox(titleGroup.node()) : {};
+
+            var maxshift = avoid.maxShift || (
+                (paperbb[avoid.side]-titlebb[avoid.side]) *
+                ((avoid.side === 'left' || avoid.side === 'top') ? -1 : 1));
+
             // Prevent the title going off the paper
             if(maxshift < 0) shift = maxshift;
             else {
@@ -224,5 +227,6 @@ Titles.draw = function(gd, titleClass, options) {
     else if(!txt || txt.match(/Click to enter .+ title/)) {
         el.remove();
     }
+
     el.classed('js-placeholder', isplaceholder);
 };
