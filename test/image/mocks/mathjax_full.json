@@ -1,0 +1,29 @@
+{
+  "data": [
+    {
+      "y": [
+        2,
+        1,
+        2
+      ],
+      "name": "$\\xi_a$"
+    },
+    {
+      "y": [
+        1,
+        2,
+        1
+      ],
+      "name": "$\\zeta^2$"
+    }
+  ],
+  "layout": {
+    "title": "$\\iiint_V \\; (\\nabla \\cdot \\vec{F}) \\; \\mathrm{d}V \\; = \\; \\oint_S (\\vec{F} \\cdot \\vec{n}) \\; \\mathrm{d}S \\; = \\; 0$",
+    "xaxis": {
+      "title": "$\\alpha \\; \\beta \\; \\gamma$"
+    },
+    "yaxis": {
+      "title": "$\\lambda \\quad \\sigma \\quad \\phi$"
+    }
+  }
+}
