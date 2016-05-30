@@ -9,6 +9,8 @@
 
 'use strict';
 
+var lineAttrs = require('../../traces/scatter/attributes').line;
+
 
 module.exports = {
     domain: {
@@ -69,9 +71,65 @@ module.exports = {
     pitch: {
         valType: 'number',
         dflt: 0
-    }
+    },
 
-    // custom geojson or topojson layers
-//     layers: { }
+    layers: {
+        _isLinkedToArray: true,
+
+        description: [
+            ''
+        ].join(' '),
+
+        sourcetype: {
+            valType: 'enumerated',
+            values: ['geojson', /* 'vector', 'raster', 'image', 'video' */],
+            dflt: 'geojson'
+        },
+        source: {
+            valType: 'any',
+        },
+
+        type: {
+            valType: 'enumerated',
+            values: ['line', /* 'background', 'symbol', 'raster', 'circle' */ ],
+            dflt: 'line',
+            role: 'info'
+        },
+
+        below: {
+            valType: 'string',
+            dflt: '',
+            role: 'info',
+            description: [
+                'If a value for before is provided, the layer will be inserted',
+                'before the layer with the specified ID. If before is omitted,',
+                'the layer will be inserted above every existing layer.'
+            ].join(' ')
+        },
+
+        line: {
+            color: lineAttrs.color,
+            width: lineAttrs.width,
+            dash: lineAttrs.dash
+        },
+
+        fillcolor: {
+            valType: 'color',
+            dflt: 'rgba(0,0,0,0)',
+            role: 'info',
+            description: [
+                'Sets the color filling the layer\'s interior.'
+            ].join(' ')
+        },
+
+        opacity: {
+            valType: 'number',
+            min: 0,
+            max: 1,
+            dflt: 1,
+            role: 'info',
+            description: 'Sets the opacity of the layer.'
+        }
+    }
 
 };

@@ -37,6 +37,7 @@ function Mapbox(opts) {
 
     this.map = null;
     this.traceHash = {};
+    this.layerHash = {};
 }
 
 var proto = Mapbox.prototype;
@@ -210,8 +211,7 @@ proto.updateLayout = function(fullLayout) {
     map.setBearing(opts.bearing);
     map.setPitch(opts.pitch);
 
-    // TODO update layers
-
+	this.updateLayers();
     this.updateFramework(fullLayout);
     this.map.resize();
 };
@@ -296,6 +296,13 @@ proto.updateFramework = function(fullLayout) {
     this.yaxis._offset = size.t + (1 - domain.y[1]) * size.h;
     this.yaxis._length = size.h * (domain.y[1] - domain.y[0]);
 };
+
+proto.updateLayers = function() {
+	var opts = this.opts,
+		layers = opts.layers;
+
+	
+}
 
 proto.destroy = function() {
     this.map.remove();
