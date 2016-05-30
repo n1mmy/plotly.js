@@ -9,6 +9,8 @@
 
 'use strict';
 
+var Lib = require('../../lib');
+
 var handleSubplotDefaults = require('../subplot_defaults');
 var layoutAttributes = require('./layout_attributes');
 
@@ -30,5 +32,40 @@ function handleDefaults(containerIn, containerOut, coerce) {
     coerce('bearing');
     coerce('pitch');
 
+    handleLayerDefaults(containerIn, containerOut);
+
     containerOut._input = containerIn;
+}
+
+function handleLayerDefaults(containerIn, containerOut) {
+    var layersIn = containerIn.layers || [],
+        layersOut = containerOut.layers = [];
+
+    var layerIn, layerOut;
+
+    function coerce(attr, dflt) {
+        return Lib.coerce(layerIn, layerOut, layoutAttributes.layers, attr, dflt);
+    }
+
+    for(var i = 0; i < layersIn.length; i++) {
+        layerIn = layersIn[i];
+        layerOut = {};
+
+        coerce('sourcetype')
+        coerce('source')
+
+        var type = coerce('type');
+
+        if(type === 'line') {
+            coerce('line.color');
+            coerce('line.width');
+            coerce('line.dash');
+            coerce('fillcolor');
+        }
+
+        coerce('below');
+        coerce('opacity');
+
+        layersOut.push(layerOut);
+    }
 }
