@@ -59,6 +59,9 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
         }
     }
 
+    // hover-only for now
+    coerce('text');
+
     coerce('hoverinfo', (layout._dataLength === 1) ? 'lon+lat+text' : undefined);
 };
 
