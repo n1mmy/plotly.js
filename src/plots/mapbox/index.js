@@ -58,7 +58,7 @@ exports.plot = function plotMapbox(gd) {
     for(var i = 0; i < mapboxIds.length; i++) {
         var id = mapboxIds[i],
             fullMapboxData = Plots.getSubplotData(fullData, 'mapbox', id),
-            mapbox = fullLayout[id]._mapbox;
+            mapbox = fullLayout[id]._subplot;
 
         if(!mapbox) {
             mapbox = createMapbox({
@@ -69,7 +69,7 @@ exports.plot = function plotMapbox(gd) {
                 staticPlot: gd._context.staticPlot
             });
 
-            fullLayout[id]._mapbox = mapbox;
+            fullLayout[id]._subplot = mapbox;
         }
 
         mapbox.plot(fullMapboxData, fullLayout, gd._promises);
@@ -82,8 +82,8 @@ exports.clean = function(newFullData, newFullLayout, oldFullData, oldFullLayout)
     for(var i = 0; i < oldMapboxKeys.length; i++) {
         var oldMapboxKey = oldMapboxKeys[i];
 
-        if(!newFullLayout[oldMapboxKey] && !!oldFullLayout[oldMapboxKey]._mapbox) {
-            oldFullLayout[oldMapboxKey]._mapbox.destroy();
+        if(!newFullLayout[oldMapboxKey] && !!oldFullLayout[oldMapboxKey]._subplot) {
+            oldFullLayout[oldMapboxKey]._subplot.destroy();
         }
     }
 };
@@ -96,7 +96,7 @@ exports.toSVG = function(gd) {
     for(var i = 0; i < subplotIds.length; i++) {
         var opts = fullLayout[subplotIds[i]],
             domain = opts.domain,
-            mapbox = opts._mapbox;
+            mapbox = opts._subplot;
 
         var imageData = mapbox.toImage('png');
         var image = fullLayout._glimages.append('svg:image');
