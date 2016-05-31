@@ -122,6 +122,10 @@ proto.createMap = function(fullData, fullLayout, resolve) {
         Fx.hover(gd, evt, self.id);
     });
 
+    map.on('click', function() {
+        Fx.click(gd, { target: true });
+    });
+
     function unhover() {
         Fx.loneUnhover(fullLayout._toppaper);
     }
