@@ -35,7 +35,15 @@ module.exports = {
         ].join(' ')
     },
 
-    // text
+    text: extendFlat({}, scatterAttrs.text, {
+        description: [
+            'Sets hover text elements associated with each (lon,lat) pair',
+            'If a single string, the same string appears over',
+            'all the data points.',
+            'If an array of string, the items are mapped in order to the',
+            'this trace\'s (lon,lat) coordinates.'
+        ].join(' ')
+    }),
 
     line: {
         color: lineAttrs.color,
