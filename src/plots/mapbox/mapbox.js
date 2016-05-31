@@ -11,8 +11,8 @@
 
 var mapboxgl = require('mapbox-gl');
 
+var Fx = require('../cartesian/graph_interact');
 var constants = require('./constants');
-var xmlnsNamespaces = require('../../constants/xmlns_namespaces');
 
 
 function Mapbox(opts) {
@@ -31,7 +31,8 @@ function Mapbox(opts) {
 
     // create framework on instantiation for a smoother first plot call
     this.div = null;
-    this.hoverLayer = null;
+    this.xaxis = null;
+    this.yaxis = null;
     this.createFramework(fullLayout);
 
     this.map = null;
@@ -70,7 +71,8 @@ proto.plot = function(fullData, fullLayout, promises) {
 
 proto.createMap = function(fullData, fullLayout, resolve) {
     var self = this,
-        opts = this.opts;
+        gd = self.gd,
+        opts = self.opts;
 
     var map = self.map = new mapboxgl.Map({
         container: self.div,
@@ -104,10 +106,28 @@ proto.createMap = function(fullData, fullLayout, resolve) {
         opts._input.zoom = opts.zoom = map.getZoom();
     });
 
+    map.on('mousemove', function(evt) {
+        var bb = self.div.getBoundingClientRect();
 
-    // TODO hover labels
-    map.on('mousemove', function() {});
+        // some hackery to get Fx.hover to work
 
+        evt.clientX = evt.point.x + bb.left;
+        evt.clientY = evt.point.y + bb.top;
+
+        evt.target.getBoundingClientRect = function() { return bb; };
+
+        self.xaxis.p2c = function() { return evt.lngLat.lng; };
+        self.yaxis.p2c = function() { return evt.lngLat.lat; };
+
+        Fx.hover(gd, evt, self.id);
+    });
+
+    function unhover() {
+        Fx.loneUnhover(fullLayout._toppaper);
+    }
+
+    map.on('dragstart', unhover);
+    map.on('zoomstart', unhover);
 };
 
 proto.updateMap = function(fullData, fullLayout, resolve) {
@@ -185,27 +205,28 @@ proto.updateLayout = function(fullLayout) {
 };
 
 proto.createFramework = function(fullLayout) {
-    var div = this.div = document.createElement('div');
+    var self = this;
 
-    div.id = this.uid;
+    var div = self.div = document.createElement('div');
+
+    div.id = self.uid;
     div.style.position = 'absolute';
 
-    var hoverLayer = this.hoverLayer = document.createElementNS(
-        xmlnsNamespaces.svg, 'svg'
-    );
+    self.container.appendChild(div);
 
-    var hoverStyle = hoverLayer.style;
+    // create mock x/y axes for hover routine
 
-    hoverStyle.position = 'absolute';
-    hoverStyle.top = hoverStyle.left = '0px';
-    hoverStyle.width = hoverStyle.height = '100%';
-    hoverStyle['z-index'] = 20;
-    hoverStyle['pointer-events'] = 'none';
+    self.xaxis = {
+        _id: 'x',
+        c2p: function(v) { return self.project(v).x; }
+    };
 
-    this.container.appendChild(div);
-    this.container.appendChild(hoverLayer);
+    self.yaxis = {
+        _id: 'y',
+        c2p: function(v) { return self.project(v).y; }
+    };
 
-    this.updateFramework(fullLayout);
+    self.updateFramework(fullLayout);
 };
 
 proto.updateFramework = function(fullLayout) {
@@ -214,18 +235,23 @@ proto.updateFramework = function(fullLayout) {
 
     var style = this.div.style;
 
-    // Is this correct? It seems to get the map zoom level wrong?
+    // TODO Is this correct? It seems to get the map zoom level wrong?
 
     style.width = size.w * (domain.x[1] - domain.x[0]) + 'px';
     style.height = size.h * (domain.y[1] - domain.y[0]) + 'px';
     style.left = size.l + domain.x[0] * size.w + 'px';
     style.top = size.t + (1 - domain.y[1]) * size.h + 'px';
+
+    this.xaxis._offset = size.l + domain.x[0] * size.w;
+    this.xaxis._length = size.w * (domain.x[1] - domain.x[0]);
+
+    this.yaxis._offset = size.t + (1 - domain.y[1]) * size.h;
+    this.yaxis._length = size.h * (domain.y[1] - domain.y[0]);
 };
 
 proto.destroy = function() {
     this.map.remove();
     this.container.removeChild(this.div);
-    this.container.removeChild(this.hoverLayer);
 };
 
 proto.toImage = function() {
@@ -253,6 +279,11 @@ proto.createGeoJSONSource = function() {
     };
 
     return new mapboxgl.GeoJSONSource({data: blank});
+};
+
+// convenience method to project a [lon, lat] array to pixel coords
+proto.project = function(v) {
+    return this.map.project(new mapboxgl.LngLat(v[0], v[1]));
 };
 
 function convertStyleUrl(style) {
