@@ -22,7 +22,8 @@ var ScatterMapbox = {};
 ScatterMapbox.attributes = require('./attributes');
 ScatterMapbox.supplyDefaults = require('./defaults');
 ScatterMapbox.colorbar = require('../scatter/colorbar');
-ScatterMapbox.calc = require('../scattergeo/calc');
+ScatterMapbox.calc = require('./calc');
+ScatterMapbox.hoverPoints = require('./hover');
 ScatterMapbox.plot = require('./plot');
 
 ScatterMapbox.moduleType = 'trace';
