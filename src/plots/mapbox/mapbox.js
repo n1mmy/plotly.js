@@ -91,12 +91,7 @@ proto.createMap = function(fullData, fullLayout, resolve) {
         self.updateData(fullData);
         self.updateLayout(fullLayout);
 
-        map.on('render', function() {
-            if(map.loaded()) {
-                map.off('render', this);
-                resolve();
-            }
-        });
+        self.resolveOnRender(resolve);
     });
 
     // keep track of pan / zoom in user layout
@@ -152,13 +147,15 @@ proto.updateMap = function(fullData, fullLayout, resolve) {
 
             self.updateData(fullData);
             self.updateLayout(fullLayout);
-            resolve();
+
+            self.resolveOnRender(resolve);
         });
     }
     else {
         self.updateData(fullData);
         self.updateLayout(fullLayout);
-        resolve();
+
+        self.resolveOnRender(resolve);
     }
 };
 
@@ -206,6 +203,17 @@ proto.updateLayout = function(fullLayout) {
 
     this.updateFramework(fullLayout);
     this.map.resize();
+};
+
+proto.resolveOnRender = function(resolve) {
+    var map = this.map;
+
+    map.on('render', function onRender() {
+        if(map.loaded()) {
+            map.off('render', onRender);
+            resolve();
+        }
+    });
 };
 
 proto.createFramework = function(fullLayout) {
