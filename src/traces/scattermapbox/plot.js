@@ -17,27 +17,40 @@ function ScatterMapbox(mapbox, uid) {
     this.map = mapbox.map;
 
     this.uid = uid;
-    this.idSourceMarkers = uid + '-source-markers';
+
+    this.idSourceFill = uid + '-source-fill';
     this.idSourceLines = uid + '-source-lines';
-    this.idLayerMarkers = uid + '-layer-markers';
+    this.idSourceMarkers = uid + '-source-markers';
+
+    this.idLayerFill = uid + '-layer-fill';
     this.idLayerLines = uid + '-layer-lines';
+    this.idLayerMarkers = uid + '-layer-markers';
+
+    this.sourceFill = mapbox.createGeoJSONSource();
+    this.map.addSource(this.idSourceFill, this.sourceFill);
 
     this.sourceLines = mapbox.createGeoJSONSource();
     this.map.addSource(this.idSourceLines, this.sourceLines);
-    this.map.addLayer({
-        id: this.idLayerLines,
-        source: this.idSourceLines,
-        type: 'line',
-        interactive: true
-    });
 
     this.sourceMarkers = mapbox.createGeoJSONSource();
     this.map.addSource(this.idSourceMarkers, this.sourceMarkers);
+
+    this.map.addLayer({
+        id: this.idLayerFill,
+        source: this.idSourceFill,
+        type: 'fill'
+    });
+
+    this.map.addLayer({
+        id: this.idLayerLines,
+        source: this.idSourceLines,
+        type: 'line'
+    });
+
     this.map.addLayer({
         id: this.idLayerMarkers,
         source: this.idSourceMarkers,
-        type: 'circle',
-        interactive: true
+        type: 'circle'
     });
 
     // how to add 'symbol' layer ???
@@ -49,29 +62,38 @@ function ScatterMapbox(mapbox, uid) {
 var proto = ScatterMapbox.prototype;
 
 proto.update = function update(trace) {
-    var opts = convert(trace);
+    var map = this.map,
+        opts = convert(trace);
 
-    setOptions(this.map, this.idLayerLines, 'setLayoutProperty', opts.layoutLines);
-    setOptions(this.map, this.idLayerMarkers, 'setLayoutProperty', opts.layoutMarkers);
+    setOptions(map, this.idLayerFill, 'setLayoutProperty', opts.fill.layout);
+    setOptions(map, this.idLayerLines, 'setLayoutProperty', opts.lines.layout);
+    setOptions(map, this.idLayerMarkers, 'setLayoutProperty', opts.markers.layout);
 
-    if(opts.layoutLines.visibility === 'visible') {
-        this.sourceLines.setData(opts.geojsonLines);
-        setOptions(this.map, this.idLayerLines, 'setPaintProperty', opts.paintLines);
+    if(isVisible(opts.fill)) {
+        this.sourceFill.setData(opts.fill.geojson);
+        setOptions(map, this.idLayerFill, 'setPaintProperty', opts.fill.paint);
     }
 
-    if(opts.layoutMarkers.visibility === 'visible') {
-        this.sourceMarkers.setData(opts.geojsonMarkers);
-        setOptions(this.map, this.idLayerMarkers, 'setPaintProperty', opts.paintMarkers);
+    if(isVisible(opts.lines)) {
+        this.sourceLines.setData(opts.lines.geojson);
+        setOptions(map, this.idLayerLines, 'setPaintProperty', opts.lines.paint);
+    }
+
+    if(isVisible(opts.markers)) {
+        this.sourceMarkers.setData(opts.markers.geojson);
+        setOptions(map, this.idLayerMarkers, 'setPaintProperty', opts.markers.paint);
     }
 };
 
 proto.dispose = function dispose() {
     var map = this.map;
 
-    map.removeLayer(this.idLayerMarkers);
-    map.removeSource(this.idSourceMarkers);
+    map.removeLayer(this.idLayerFill);
     map.removeLayer(this.idLayerLines);
+    map.removeLayer(this.idLayerMarkers);
+
     map.removeSource(this.idSourceLines);
+    map.removeSource(this.idSourceMarkers);
 };
 
 function setOptions(map, id, methodName, opts) {
@@ -82,6 +104,10 @@ function setOptions(map, id, methodName, opts) {
 
         map[methodName](id, key, opts[key]);
     }
+}
+
+function isVisible(layerOpts) {
+    return layerOpts.layout.visibility === 'visible';
 }
 
 module.exports = function createScatterMapbox(mapbox, trace) {
