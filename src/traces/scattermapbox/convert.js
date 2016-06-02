@@ -23,24 +23,35 @@ var SIZE_PROP = 'circle-size';
 
 module.exports = function convert(trace) {
     var isVisible = (trace.visible === true),
+        hasFill = (trace.fill !== 'none'),
         hasLines = subTypes.hasLines(trace),
         hasMarkers = subTypes.hasMarkers(trace);
 
-    var geojsonLines = makeBlankGeoJSON(),
-        layoutLines = { visibility: 'none' },
-        paintLines = {};
+    var fill = initContainer(),
+        lines = initContainer(),
+        markers = initContainer();
 
-    var geojsonMarkers = makeBlankGeoJSON(),
-        layoutMarkers = { visibility: 'none' },
-        paintMarkers = {};
+    var coords;
+    if(isVisible && (hasFill || hasLines)) {
+        coords = getCoords(trace);
+    }
+
+    if(isVisible && hasFill) {
+        fill.geojson = makeFillGeoJSON(trace, coords);
+        fill.layout.visibility = 'visible';
+
+        Lib.extendFlat(fill.paint, {
+            'fill-color': trace.fillcolor
+        });
+    }
 
     if(isVisible && hasLines) {
-        geojsonLines = makeLineGeoJSON(trace);
-        layoutLines.visibility = 'visible';
+        lines.geojson = makeLineGeoJSON(trace, coords);
+        lines.layout.visibility = 'visible';
 
         var line = trace.line;
 
-        Lib.extendFlat(paintLines, {
+        Lib.extendFlat(lines.paint, {
             'line-width': line.width,
             'line-color': line.color,
             'line-opacity': trace.opacity
@@ -55,10 +66,10 @@ module.exports = function convert(trace) {
         hash[COLOR_PROP] = {};
         hash[SIZE_PROP] = {};
 
-        geojsonMarkers = makeMarkerGeoJSON(trace, hash);
-        layoutMarkers.visibility = 'visible';
+        markers.geojson = makeMarkerGeoJSON(trace, hash);
+        markers.layout.visibility = 'visible';
 
-        Lib.extendFlat(paintMarkers, {
+        Lib.extendFlat(markers.paint, {
             'circle-opacity': trace.opacity * trace.marker.opacity,
             'circle-color': calcMarkerColor(trace, hash),
             'circle-radius': calcMarkerSize(trace, hash)
@@ -66,15 +77,19 @@ module.exports = function convert(trace) {
     }
 
     return {
-        geojsonLines: geojsonLines,
-        layoutLines: layoutLines,
-        paintLines: paintLines,
-
-        geojsonMarkers: geojsonMarkers,
-        layoutMarkers: layoutMarkers,
-        paintMarkers: paintMarkers
+        fill: fill,
+        lines: lines,
+        markers: markers
     };
 };
+
+function initContainer() {
+    return {
+        geojson: makeBlankGeoJSON(),
+        layout: { visibility: 'none' },
+        paint: {}
+    };
+}
 
 function makeBlankGeoJSON() {
     return {
@@ -83,7 +98,7 @@ function makeBlankGeoJSON() {
     };
 }
 
-function makeLineGeoJSON(trace) {
+function getCoords(trace) {
     var len = getCoordLen(trace),
         connectgaps = trace.connectgaps;
 
@@ -105,6 +120,17 @@ function makeLineGeoJSON(trace) {
 
     coords.push(lineString);
 
+    return coords;
+}
+
+function makeFillGeoJSON(trace, coords) {
+    return {
+        type: 'Polygon',
+        coordinates: coords
+    };
+}
+
+function makeLineGeoJSON(trace, coords) {
     return {
         type: 'MultiLineString',
         coordinates: coords
