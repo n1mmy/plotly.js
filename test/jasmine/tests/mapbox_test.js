@@ -76,7 +76,12 @@ describe('mapbox plots', function() {
         Plotly.deleteTraces(gd, [0]).then(function() {
             expect(countVisibleTraces(gd, modes)).toEqual(1);
 
-            var trace = Lib.extendDeep({}, mock.data[0]);
+            var trace = {
+                type: 'scattermapbox',
+                mode: 'markers+lines',
+                lon: [-10, -20, -10],
+                lat: [-10, 20, -10]
+            };
 
             return Plotly.addTraces(gd, [trace]);
         }).then(function() {
