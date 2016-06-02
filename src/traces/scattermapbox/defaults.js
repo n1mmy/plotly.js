@@ -14,6 +14,7 @@ var Lib = require('../../lib');
 var subTypes = require('../scatter/subtypes');
 var handleMarkerDefaults = require('../scatter/marker_defaults');
 var handleLineDefaults = require('../scatter/line_defaults');
+var handleFillColorDefaults = require('../scatter/fillcolor_defaults');
 
 var attributes = require('./attributes');
 var scatterAttrs = require('../scatter/attributes');
@@ -61,6 +62,11 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
 
     // hover-only for now
     coerce('text');
+
+    coerce('fill');
+    if(traceOut.fill !== 'none') {
+        handleFillColorDefaults(traceIn, traceOut, defaultColor, coerce);
+    }
 
     coerce('hoverinfo', (layout._dataLength === 1) ? 'lon+lat+text' : undefined);
 };
