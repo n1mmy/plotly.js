@@ -52,12 +52,12 @@ exports.plot = function plotMapbox(gd) {
     mapboxgl.accessToken = CREDS.accessToken;
 
     var fullLayout = gd._fullLayout,
-        fullData = gd._fullData,
+        calcData = gd.calcdata,
         mapboxIds = Plots.getSubplotIds(fullLayout, 'mapbox');
 
     for(var i = 0; i < mapboxIds.length; i++) {
         var id = mapboxIds[i],
-            fullMapboxData = Plots.getSubplotData(fullData, 'mapbox', id),
+            subplotCalcData = getSubplotCalcData(calcData, id),
             mapbox = fullLayout[id]._subplot;
 
         if(!mapbox) {
@@ -72,7 +72,7 @@ exports.plot = function plotMapbox(gd) {
             fullLayout[id]._subplot = mapbox;
         }
 
-        mapbox.plot(fullMapboxData, fullLayout, gd._promises);
+        mapbox.plot(subplotCalcData, fullLayout, gd._promises);
     }
 };
 
@@ -114,3 +114,16 @@ exports.toSVG = function(gd) {
         mapbox.destroy();
     }
 };
+
+function getSubplotCalcData(calcData, id) {
+    var subplotCalcData = [];
+
+    for(var i = 0; i < calcData.length; i++) {
+        var calcTrace = calcData[i],
+            trace = calcTrace[0].trace;
+
+        if(trace.subplot === id) subplotCalcData.push(calcTrace);
+    }
+
+    return subplotCalcData;
+}
