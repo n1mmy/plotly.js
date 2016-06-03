@@ -64,16 +64,17 @@ function ScatterMapbox(mapbox, uid) {
         type: 'symbol'
     });
 
-	// We could merge the 'fill' source with the 'line' source and
-	// the 'circle' source with the 'symbol' source if ever having
-	// for up-to 4 sources per 'scattermapbox' traces becomes a problem.
+    // We could merge the 'fill' source with the 'line' source and
+    // the 'circle' source with the 'symbol' source if ever having
+    // for up-to 4 sources per 'scattermapbox' traces becomes a problem.
 }
 
 var proto = ScatterMapbox.prototype;
 
-proto.update = function update(trace) {
-    var map = this.map,
-        opts = convert(trace);
+proto.update = function update(calcTrace) {
+    var map = this.map;
+
+    var opts = convert(calcTrace);
 
     setOptions(map, this.idLayerFill, 'setLayoutProperty', opts.fill.layout);
     setOptions(map, this.idLayerLine, 'setLayoutProperty', opts.line.layout);
@@ -129,9 +130,11 @@ function isVisible(layerOpts) {
     return layerOpts.layout.visibility === 'visible';
 }
 
-module.exports = function createScatterMapbox(mapbox, trace) {
+module.exports = function createScatterMapbox(mapbox, calcTrace) {
+    var trace = calcTrace[0].trace;
+
     var scatterMapbox = new ScatterMapbox(mapbox, trace.uid);
-    scatterMapbox.update(trace);
+    scatterMapbox.update(calcTrace);
 
     return scatterMapbox;
 };
