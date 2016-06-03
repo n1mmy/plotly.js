@@ -45,7 +45,7 @@ describe('mapbox plots', function() {
     });
 
     it('should be able to toggle trace visibility', function(done) {
-        var modes = ['lines', 'markers'];
+        var modes = ['line', 'circle'];
 
         expect(countVisibleTraces(gd, modes)).toEqual(2);
 
@@ -69,7 +69,7 @@ describe('mapbox plots', function() {
     });
 
     it('should be able to delete and add traces', function(done) {
-        var modes = ['lines', 'markers'];
+        var modes = ['line', 'circle'];
 
         expect(countVisibleTraces(gd, modes)).toEqual(2);
 
@@ -112,7 +112,7 @@ describe('mapbox plots', function() {
 
             return new Promise(function(resolve) {
                 setTimeout(function() {
-                    var colors = getStyle(gd, 'markers', 'circle-color');
+                    var colors = getStyle(gd, 'circle', 'circle-color');
 
                     expectations.forEach(function(expected, i) {
                         expect(colors[i]).toBeCloseToArray(expected);
@@ -395,6 +395,9 @@ describe('mapbox plots', function() {
     function countVisibleTraces(gd, modes) {
         var mapInfo = getMapInfo(gd),
             cnts = [];
+
+        // 'modes' are the ScatterMapbox layers names
+        // e.g. 'fill', 'line', 'circle', 'symbol'
 
         modes.forEach(function(mode) {
             var cntPerMode = 0;

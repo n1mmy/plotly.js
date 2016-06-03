@@ -26,18 +26,21 @@ module.exports = {
 
     mode: {
         valType: 'flaglist',
-        flags: ['lines', 'markers'],
+        flags: ['lines', 'markers', 'text'],
         dflt: 'markers',
         extras: ['none'],
         role: 'info',
         description: [
-            'Determines the drawing mode for this scatter trace.'
+            'Determines the drawing mode for this scatter trace.',
+            'If the provided `mode` includes *text* then the `text` elements',
+            'appear at the coordinates. Otherwise, the `text` elements',
+            'appear on hover.'
         ].join(' ')
     },
 
     text: extendFlat({}, scatterAttrs.text, {
         description: [
-            'Sets hover text elements associated with each (lon,lat) pair',
+            'Sets text elements associated with each (lon,lat) pair',
             'If a single string, the same string appears over',
             'all the data points.',
             'If an array of string, the items are mapped in order to the',
@@ -55,12 +58,13 @@ module.exports = {
 
     marker: {
         symbol: {
-            valType: 'enumerated',
-            values: ['circle'],  // TODO
+            valType: 'string',
             dflt: 'circle',
             role: 'style',
+            arrayOk: true,
             description: [
-                ''
+                '',
+                'Full list: https://www.mapbox.com/maki-icons/'
             ].join(' ')
         },
         opacity: extendFlat({}, markerAttrs.opacity, {
@@ -94,8 +98,10 @@ module.exports = {
             'of the trace if it has gaps) into a closed shape.'
         ].join(' ')
     },
-
     fillcolor: scatterAttrs.fillcolor,
+
+    textfont: extendFlat({}, scatterAttrs.textfont, { arrayOk: false }),
+    textposition: extendFlat({}, scatterAttrs.textposition, { arrayOk: false }),
 
     hoverinfo: extendFlat({}, plotAttrs.hoverinfo, {
         flags: ['lon', 'lat', 'text', 'name']
