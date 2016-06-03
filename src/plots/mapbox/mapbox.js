@@ -47,7 +47,7 @@ module.exports = function createMapbox(opts) {
     return mapbox;
 };
 
-proto.plot = function(fullData, fullLayout, promises) {
+proto.plot = function(calcData, fullLayout, promises) {
     var self = this;
 
     // feed in new mapbox options
@@ -57,19 +57,19 @@ proto.plot = function(fullData, fullLayout, promises) {
 
     if(!self.map) {
         promise = new Promise(function(resolve) {
-            self.createMap(fullData, fullLayout, resolve);
+            self.createMap(calcData, fullLayout, resolve);
         });
     }
     else {
         promise = new Promise(function(resolve) {
-            self.updateMap(fullData, fullLayout, resolve);
+            self.updateMap(calcData, fullLayout, resolve);
         });
     }
 
     promises.push(promise);
 };
 
-proto.createMap = function(fullData, fullLayout, resolve) {
+proto.createMap = function(calcData, fullLayout, resolve) {
     var self = this,
         gd = self.gd,
         opts = self.opts;
@@ -88,7 +88,7 @@ proto.createMap = function(fullData, fullLayout, resolve) {
     });
 
     map.once('load', function() {
-        self.updateData(fullData);
+        self.updateData(calcData);
         self.updateLayout(fullLayout);
 
         self.resolveOnRender(resolve);
@@ -129,7 +129,7 @@ proto.createMap = function(fullData, fullLayout, resolve) {
     map.on('zoomstart', unhover);
 };
 
-proto.updateMap = function(fullData, fullLayout, resolve) {
+proto.updateMap = function(calcData, fullLayout, resolve) {
     var self = this,
         map = self.map;
 
@@ -145,32 +145,35 @@ proto.updateMap = function(fullData, fullLayout, resolve) {
             // to avoid 'lost event' errors
             self.traceHash = {};
 
-            self.updateData(fullData);
+            self.updateData(calcData);
             self.updateLayout(fullLayout);
 
             self.resolveOnRender(resolve);
         });
     }
     else {
-        self.updateData(fullData);
+        self.updateData(calcData);
         self.updateLayout(fullLayout);
 
         self.resolveOnRender(resolve);
     }
 };
 
-proto.updateData = function(fullData) {
+proto.updateData = function(calcData) {
     var traceHash = this.traceHash;
-    var traceObj, i, j;
+
+    var traceObj, trace, i, j;
 
     // update or create trace objects
-    for(i = 0; i < fullData.length; i++) {
-        var trace = fullData[i];
+    for(i = 0; i < calcData.length; i++) {
+        var calcTrace = calcData[i];
+
+        trace = calcTrace[0].trace;
         traceObj = traceHash[trace.uid];
 
-        if(traceObj) traceObj.update(trace);
+        if(traceObj) traceObj.update(calcTrace);
         else {
-            traceHash[trace.uid] = trace._module.plot(this, trace);
+            traceHash[trace.uid] = trace._module.plot(this, calcTrace);
         }
     }
 
@@ -180,8 +183,10 @@ proto.updateData = function(fullData) {
     for(i = 0; i < ids.length; i++) {
         var id = ids[i];
 
-        for(j = 0; j < fullData.length; j++) {
-            if(id === fullData[j].uid) continue id_loop;
+        for(j = 0; j < calcData.length; j++) {
+            trace = calcData[j][0].trace;
+
+            if(id === trace.uid) continue id_loop;
         }
 
         traceObj = traceHash[id];
