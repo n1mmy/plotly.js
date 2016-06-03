@@ -40,7 +40,7 @@ describe('scattermapbox hover', function() {
 
     var hoverPoints = ScatterMapbox.hoverPoints;
 
-    var gd, pointData;
+    var gd;
 
     beforeAll(function(done) {
         jasmine.addMatchers(customMatchers);
@@ -57,11 +57,16 @@ describe('scattermapbox hover', function() {
         Plotly.plot(gd, data).then(done);
     });
 
-    beforeEach(function() {
+    afterAll(function() {
+        Plotly.purge(gd);
+        destroyGraphDiv();
+    });
+
+    function getPointData(gd) {
         var cd = gd.calcdata,
             mapbox = gd._fullLayout.mapbox._subplot;
 
-        pointData = {
+        return {
             index: false,
             distance: 20,
             cd: cd[0],
@@ -69,18 +74,13 @@ describe('scattermapbox hover', function() {
             xa: mapbox.xaxis,
             ya: mapbox.yaxis
         };
-    });
-
-    afterAll(function() {
-        Plotly.purge(gd);
-        destroyGraphDiv();
-    });
+    }
 
     it('should generate hover label info (base case)', function() {
         var xval = 11,
             yval = 11;
 
-        var out = hoverPoints(pointData, xval, yval)[0];
+        var out = hoverPoints(getPointData(gd), xval, yval)[0];
 
         expect(out.index).toEqual(0);
         expect([out.x0, out.x1, out.y0, out.y1]).toBeCloseToArray([
@@ -94,7 +94,7 @@ describe('scattermapbox hover', function() {
         var xval = 11 + 720,
             yval = 11;
 
-        var out = hoverPoints(pointData, xval, yval)[0];
+        var out = hoverPoints(getPointData(gd), xval, yval)[0];
 
         expect(out.index).toEqual(0);
         expect([out.x0, out.x1, out.y0, out.y1]).toBeCloseToArray([
@@ -108,7 +108,7 @@ describe('scattermapbox hover', function() {
         var xval = 11 - 1080,
             yval = 11;
 
-        var out = hoverPoints(pointData, xval, yval)[0];
+        var out = hoverPoints(getPointData(gd), xval, yval)[0];
 
         expect(out.index).toEqual(0);
         expect([out.x0, out.x1, out.y0, out.y1]).toBeCloseToArray([
@@ -123,7 +123,7 @@ describe('scattermapbox hover', function() {
             var xval = 11,
                 yval = 11;
 
-            var out = hoverPoints(pointData, xval, yval)[0];
+            var out = hoverPoints(getPointData(gd), xval, yval)[0];
 
             expect(out.extraText).toEqual('lon: 10°');
             done();
@@ -135,7 +135,7 @@ describe('scattermapbox hover', function() {
             var xval = 11,
                 yval = 11;
 
-            var out = hoverPoints(pointData, xval, yval)[0];
+            var out = hoverPoints(getPointData(gd), xval, yval)[0];
 
             expect(out.extraText).toEqual('lat: 10°');
             done();
@@ -147,7 +147,7 @@ describe('scattermapbox hover', function() {
             var xval = 11,
                 yval = 11;
 
-            var out = hoverPoints(pointData, xval, yval)[0];
+            var out = hoverPoints(getPointData(gd), xval, yval)[0];
 
             expect(out.extraText).toEqual('A');
             done();
