@@ -14,6 +14,7 @@ var Lib = require('../../lib');
 var subTypes = require('../scatter/subtypes');
 var handleMarkerDefaults = require('../scatter/marker_defaults');
 var handleLineDefaults = require('../scatter/line_defaults');
+var handleTextDefaults = require('../scatter/text_defaults');
 var handleFillColorDefaults = require('../scatter/fillcolor_defaults');
 
 var attributes = require('./attributes');
@@ -40,6 +41,7 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
         return;
     }
 
+    coerce('text');
     coerce('mode');
 
     if(subTypes.hasLines(traceOut)) {
@@ -60,8 +62,9 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
         }
     }
 
-    // hover-only for now
-    coerce('text');
+    if(subTypes.hasText(traceOut)) {
+        handleTextDefaults(traceIn, traceOut, layout, coerce);
+    }
 
     coerce('fill');
     if(traceOut.fill !== 'none') {

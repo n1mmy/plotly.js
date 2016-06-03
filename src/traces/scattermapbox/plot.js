@@ -19,21 +19,26 @@ function ScatterMapbox(mapbox, uid) {
     this.uid = uid;
 
     this.idSourceFill = uid + '-source-fill';
-    this.idSourceLines = uid + '-source-lines';
-    this.idSourceMarkers = uid + '-source-markers';
+    this.idSourceLine = uid + '-source-line';
+    this.idSourceCircle = uid + '-source-circle';
+    this.idSourceSymbol = uid + '-source-symbol';
 
     this.idLayerFill = uid + '-layer-fill';
-    this.idLayerLines = uid + '-layer-lines';
-    this.idLayerMarkers = uid + '-layer-markers';
+    this.idLayerLine = uid + '-layer-line';
+    this.idLayerCircle = uid + '-layer-circle';
+    this.idLayerSymbol = uid + '-layer-symbol';
 
     this.sourceFill = mapbox.createGeoJSONSource();
     this.map.addSource(this.idSourceFill, this.sourceFill);
 
-    this.sourceLines = mapbox.createGeoJSONSource();
-    this.map.addSource(this.idSourceLines, this.sourceLines);
+    this.sourceLine = mapbox.createGeoJSONSource();
+    this.map.addSource(this.idSourceLine, this.sourceLine);
 
-    this.sourceMarkers = mapbox.createGeoJSONSource();
-    this.map.addSource(this.idSourceMarkers, this.sourceMarkers);
+    this.sourceCircle = mapbox.createGeoJSONSource();
+    this.map.addSource(this.idSourceCircle, this.sourceCircle);
+
+    this.sourceSymbol = mapbox.createGeoJSONSource();
+    this.map.addSource(this.idSourceSymbol, this.sourceSymbol);
 
     this.map.addLayer({
         id: this.idLayerFill,
@@ -42,21 +47,26 @@ function ScatterMapbox(mapbox, uid) {
     });
 
     this.map.addLayer({
-        id: this.idLayerLines,
-        source: this.idSourceLines,
+        id: this.idLayerLine,
+        source: this.idSourceLine,
         type: 'line'
     });
 
     this.map.addLayer({
-        id: this.idLayerMarkers,
-        source: this.idSourceMarkers,
+        id: this.idLayerCircle,
+        source: this.idSourceCircle,
         type: 'circle'
     });
 
-    // how to add 'symbol' layer ???
-    // https://www.mapbox.com/mapbox-gl-js/example/geojson-markers/
-    //
-    // which appear to support arrayOk attributes
+    this.map.addLayer({
+        id: this.idLayerSymbol,
+        source: this.idSourceSymbol,
+        type: 'symbol'
+    });
+
+	// We could merge the 'fill' source with the 'line' source and
+	// the 'circle' source with the 'symbol' source if ever having
+	// for up-to 4 sources per 'scattermapbox' traces becomes a problem.
 }
 
 var proto = ScatterMapbox.prototype;
@@ -66,22 +76,28 @@ proto.update = function update(trace) {
         opts = convert(trace);
 
     setOptions(map, this.idLayerFill, 'setLayoutProperty', opts.fill.layout);
-    setOptions(map, this.idLayerLines, 'setLayoutProperty', opts.lines.layout);
-    setOptions(map, this.idLayerMarkers, 'setLayoutProperty', opts.markers.layout);
+    setOptions(map, this.idLayerLine, 'setLayoutProperty', opts.line.layout);
+    setOptions(map, this.idLayerCircle, 'setLayoutProperty', opts.circle.layout);
+    setOptions(map, this.idLayerSymbol, 'setLayoutProperty', opts.symbol.layout);
 
     if(isVisible(opts.fill)) {
         this.sourceFill.setData(opts.fill.geojson);
         setOptions(map, this.idLayerFill, 'setPaintProperty', opts.fill.paint);
     }
 
-    if(isVisible(opts.lines)) {
-        this.sourceLines.setData(opts.lines.geojson);
-        setOptions(map, this.idLayerLines, 'setPaintProperty', opts.lines.paint);
+    if(isVisible(opts.line)) {
+        this.sourceLine.setData(opts.line.geojson);
+        setOptions(map, this.idLayerLine, 'setPaintProperty', opts.line.paint);
     }
 
-    if(isVisible(opts.markers)) {
-        this.sourceMarkers.setData(opts.markers.geojson);
-        setOptions(map, this.idLayerMarkers, 'setPaintProperty', opts.markers.paint);
+    if(isVisible(opts.circle)) {
+        this.sourceCircle.setData(opts.circle.geojson);
+        setOptions(map, this.idLayerCircle, 'setPaintProperty', opts.circle.paint);
+    }
+
+    if(isVisible(opts.symbol)) {
+        this.sourceSymbol.setData(opts.symbol.geojson);
+        setOptions(map, this.idLayerSymbol, 'setPaintProperty', opts.symbol.paint);
     }
 };
 
@@ -89,11 +105,14 @@ proto.dispose = function dispose() {
     var map = this.map;
 
     map.removeLayer(this.idLayerFill);
-    map.removeLayer(this.idLayerLines);
-    map.removeLayer(this.idLayerMarkers);
+    map.removeLayer(this.idLayerLine);
+    map.removeLayer(this.idLayerCircle);
+    map.removeLayer(this.idLayerSymbol);
 
-    map.removeSource(this.idSourceLines);
-    map.removeSource(this.idSourceMarkers);
+    map.removeSource(this.idSourceFill);
+    map.removeSource(this.idSourceLine);
+    map.removeSource(this.idSourceCircle);
+    map.removeSource(this.idSourceSymbol);
 };
 
 function setOptions(map, id, methodName, opts) {
