@@ -9,8 +9,9 @@
 
 'use strict';
 
+var isNumeric = require('fast-isnumeric');
+
 var Lib = require('../../lib');
-var arrayToCalcItem = require('../../lib/array_to_calc_item');
 var hasColorscale = require('../../components/colorscale/has_colorscale');
 var makeColorScaleFn = require('../../components/colorscale/make_scale_function');
 var subtypes = require('../scatter/subtypes');
@@ -20,8 +21,13 @@ var makeBubbleSizeFn = require('../scatter/make_bubble_size_func');
 
 module.exports = function calc(gd, trace) {
     var len = trace.lon.length,
-        marker = trace.marker,
-        hasMarkers = subtypes.hasMarkers(trace);
+        marker = trace.marker;
+
+    var hasMarkers = subtypes.hasMarkers(trace),
+        hasColorArray = (hasMarkers && Array.isArray(marker.color)),
+        hasSizeArray = (hasMarkers && Array.isArray(marker.size)),
+        hasSymbolArray = (hasMarkers && Array.isArray(marker.symbol)),
+        hasTextArray = Array.isArray(trace.text);
 
     calcMarkerColorscale(trace);
 
@@ -33,26 +39,57 @@ module.exports = function calc(gd, trace) {
             makeBubbleSizeFn(trace) :
             Lib.identity;
 
-    var cd = new Array(len);
+    var calcTrace = [],
+        cnt = 0;
+
+    // Different than cartesian calc step
+    // as skip over non-numeric lon, lat pairs.
+    // This makes the hover and convert calculations simpler.
 
     for(var i = 0; i < len; i++) {
-        var cdi = cd[i] = {};
+        var lon = trace.lon[i],
+            lat = trace.lat[i];
 
-        // the isNumeric check is done in the convert step
-
-        cdi.lonlat = [trace.lon[i], trace.lat[i]];
-
-        if(hasMarkers) {
-            arrayToCalcItem(marker.color, cdi, 'mc', i);
-            arrayToCalcItem(marker.size, cdi, 'ms', i);
-            arrayToCalcItem(marker.symbol, cdi, 'mx', i);
-
-            if(cdi.mc !== undefined) cdi.mcc = colorFn(cdi.mc);
-            if(cdi.ms !== undefined) cdi.mrc = sizeFn(cdi.ms);
+        if(!isNumeric(lon) || !isNumeric(lat)) {
+            if(cnt > 0) calcTrace[cnt - 1].gapAfter = true;
+            continue;
         }
 
-        arrayToCalcItem(trace.text, cdi, 'tx', i);
+        var calcPt = {};
+        cnt++;
+
+        // coerce numeric strings into numbers
+        calcPt.lonlat = [+lon, +lat];
+
+        if(hasMarkers) {
+
+            if(hasColorArray) {
+                var mc = marker.color[i];
+
+                calcPt.mc = mc;
+                calcPt.mcc = colorFn(mc);
+            }
+
+            if(hasSizeArray) {
+                var ms = marker.size[i];
+
+                calcPt.ms = ms;
+                calcPt.mrc = sizeFn(ms);
+            }
+
+            if(hasSymbolArray) {
+                var mx = marker.symbol[i];
+                calcPt.mx = (typeof mx === 'string') ? mx : 'circle';
+            }
+        }
+
+        if(hasTextArray) {
+            var tx = trace.text[i];
+            calcPt.tx = (typeof tx === 'string') ? tx : '';
+        }
+
+        calcTrace.push(calcPt);
     }
 
-    return cd;
+    return calcTrace;
 };

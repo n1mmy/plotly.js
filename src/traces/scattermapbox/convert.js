@@ -9,8 +9,6 @@
 
 'use strict';
 
-var isNumeric = require('fast-isnumeric');
-
 var Lib = require('../../lib');
 var subTypes = require('../scatter/subtypes');
 
@@ -176,23 +174,20 @@ function makeCircleGeoJSON(calcTrace, hash) {
     var features = [];
 
     for(var i = 0; i < calcTrace.length; i++) {
-        var calcPt = calcTrace[i],
-            lonlat = calcPt.lonlat;
+        var calcPt = calcTrace[i];
 
         var props = {};
         if(hasColorArray) translate(props, COLOR_PROP, calcPt.mcc, i);
         if(hasSizeArray) translate(props, SIZE_PROP, calcPt.mrc, i);
 
-        if(checkLonLat(lonlat)) {
-            features.push({
-                type: 'Feature',
-                geometry: {
-                    type: 'Point',
-                    coordinates: coerceLonLat(lonlat)
-                },
-                properties: props
-            });
-        }
+        features.push({
+            type: 'Feature',
+            geometry: {
+                type: 'Point',
+                coordinates: calcPt.lonlat
+            },
+            properties: props
+        });
     }
 
     return {
@@ -219,22 +214,19 @@ function makeSymbolGeoJSON(calcTrace) {
     var features = [];
 
     for(var i = 0; i < calcTrace.length; i++) {
-        var calcPt = calcTrace[i],
-            lonlat = calcPt.lonlat;
+        var calcPt = calcTrace[i];
 
-        if(checkLonLat(lonlat)) {
-            features.push({
-                type: 'Feature',
-                geometry: {
-                    type: 'Point',
-                    coordinates: coerceLonLat(lonlat)
-                },
-                properties: {
-                    symbol: fillSymbol(calcPt.mx),
-                    text: fillText(calcPt.tx)
-                }
-            });
-        }
+        features.push({
+            type: 'Feature',
+            geometry: {
+                type: 'Point',
+                coordinates: calcPt.lonlat
+            },
+            properties: {
+                symbol: fillSymbol(calcPt.mx),
+                text: fillText(calcPt.tx)
+            }
+        });
     }
 
     return {
@@ -258,7 +250,7 @@ function calcCircleColor(trace, hash) {
         }
 
         out = {
-            property: SIZE_PROP,
+            property: COLOR_PROP,
             stops: stops
         };
 
@@ -350,14 +342,6 @@ function calcTextOpts(trace) {
     return { anchor: anchor, offset: offset };
 }
 
-function checkLonLat(lonlat) {
-    return isNumeric(lonlat[0]) && isNumeric(lonlat[1]);
-}
-
-function coerceLonLat(lonlat) {
-    return [+lonlat[0], +lonlat[1]];
-}
-
 function getCoords(calcTrace) {
     var trace = calcTrace[0].trace,
         connectgaps = trace.connectgaps;
@@ -366,13 +350,11 @@ function getCoords(calcTrace) {
         lineString = [];
 
     for(var i = 0; i < calcTrace.length; i++) {
-        var calcPt = calcTrace[i],
-            lonlat = calcPt.lonlat;
+        var calcPt = calcTrace[i];
 
-        if(checkLonLat(lonlat)) {
-            lineString.push(coerceLonLat(lonlat));
-        }
-        else if(!connectgaps && lineString.length > 0) {
+        lineString.push(calcPt.lonlat);
+
+        if(!connectgaps && calcPt.gapAfter && lineString.length > 0) {
             coords.push(lineString);
             lineString = [];
         }
