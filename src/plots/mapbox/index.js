@@ -12,10 +12,10 @@
 var mapboxgl = require('mapbox-gl');
 
 var Plots = require('../plots');
-var createMapbox = require('./mapbox');
 var xmlnsNamespaces = require('../../constants/xmlns_namespaces');
 
-var CREDS = require('../../../../creds.json');
+var createMapbox = require('./mapbox');
+var constants = require('./constants');
 
 
 exports.name = 'mapbox';
@@ -48,8 +48,12 @@ exports.supplyLayoutDefaults = require('./layout_defaults');
 
 exports.plot = function plotMapbox(gd) {
 
-    // TODO maybe this should be a config argument?
-    mapboxgl.accessToken = CREDS.accessToken;
+    if(!gd._context.mapboxAccessToken) {
+        throw new Error(constants.noAccessTokenErrorMsg);
+    }
+    else {
+        mapboxgl.accessToken = gd._context.mapboxAccessToken;
+    }
 
     var fullLayout = gd._fullLayout,
         calcData = gd.calcdata,
