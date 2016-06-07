@@ -156,6 +156,19 @@ function makeLineGeoJSON(_, coords) {
 }
 
 // N.B. `hash` is mutated here
+//
+// The `hash` object contains mapping between values
+// (e.g. calculated marker.size and marker.color items)
+// and their index in the input arrayOk attributes.
+//
+// GeoJSON features have their 'data-driven' properties set to
+// the index of the first value found in the data.
+//
+// The `hash` object is then converted to mapbox `stops` arrays
+// mapping index to value.
+//
+// The solution prove to be more robust than trying to generate
+// `stops` arrays from scale functions.
 function makeCircleGeoJSON(calcTrace, hash) {
     var trace = calcTrace[0].trace;
 
@@ -163,7 +176,7 @@ function makeCircleGeoJSON(calcTrace, hash) {
         hasColorArray = Array.isArray(marker.color),
         hasSizeArray = Array.isArray(marker.size);
 
-    // translate vals in trace arrayOk containers
+    // Translate vals in trace arrayOk containers
     // into a val-to-index hash object
     function translate(props, key, val, index) {
         if(!hash[key][val]) hash[key][val] = index;
