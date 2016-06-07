@@ -83,7 +83,10 @@ module.exports = {
     setBackground: defaultSetBackground,
 
     // URL to topojson files used in geo charts
-    topojsonURL: 'https://cdn.plot.ly/'
+    topojsonURL: 'https://cdn.plot.ly/',
+
+    // Mapbox access token (required to plot mapbox trace types)
+    mapboxAccessToken: null
 
 };
 
