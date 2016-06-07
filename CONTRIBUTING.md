@@ -14,10 +14,10 @@ Implementation questions should be asked on
 community.plot.ly (tagged [`plotly-js`](http://community.plot.ly/c/plotly-js)) or on Stack Overflow (tagged
 [`plotly`](https://stackoverflow.com/questions/tagged/plotly)).
 
-Comments on GitHub issues or pull requests should add content to the discussions. 
-Approbation comments such as *+1* or *I would like this feature to be implemented as well* 
-will be deleted by the maintainers. Please use 
-[GitHub reactions](https://github.com/blog/2119-add-reactions-to-pull-requests-issues-and-comments) 
+Comments on GitHub issues or pull requests should add content to the discussions.
+Approbation comments such as *+1* or *I would like this feature to be implemented as well*
+will be deleted by the maintainers. Please use
+[GitHub reactions](https://github.com/blog/2119-add-reactions-to-pull-requests-issues-and-comments)
 instead.
 
 ## Making pull requests
@@ -28,11 +28,11 @@ pull request is deemed satisfactory, the developer will be asked to make a pull
 request to the main plotly.js repo and may be asked to squash some commits
 before doing so.
 
-Developers should `git rebase` their local branch off the latest `master` before 
+Developers should `git rebase` their local branch off the latest `master` before
 opening a pull request.
 
 Note that it is forbidden to force push (i.e. `git push -f`) to remote branches
-associated with opened pull requests. Force pushes make it hard for maintainers 
+associated with opened pull requests. Force pushes make it hard for maintainers
 to keep track of updates. Therefore, if required, please
 `git merge master` into your PR branch instead of `git rebase master`.
 
@@ -156,6 +156,18 @@ npm run start-image_viewer
 which shows the baseline image, the generated image, the diff and the json mocks of test cases that failed.
 
 To view the results of a run on CircleCI, download the `build/test_images/` and `build/test_images_diff/` artifacts into your local repo and then run `npm run start-image_viewer`.
+
+### Note on testing our `mapbox-gl` integration
+
+Creating `mapbox-gl` graphs requires an
+[`accessToken`](https://www.mapbox.com/help/define-access-token/). To make sure
+that mapbox image and jasmine tests run properly, locate your Mapbox access
+token and run:
+
+
+```bash
+export MAPBOX_ACCESS_TOKEN="<your access token>" && npm run pretest
+```
 
 
 ## Repo organization
