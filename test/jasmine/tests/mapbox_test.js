@@ -11,6 +11,10 @@ var customMatchers = require('../assets/custom_matchers');
 
 var noop = function() {};
 
+Plotly.setPlotConfig({
+    mapboxAccessToken: require('@build/credentials.json').MAPBOX_ACCESS_TOKEN
+});
+
 
 describe('mapbox defaults', function() {
     'use strict';
