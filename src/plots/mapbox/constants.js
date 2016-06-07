@@ -12,5 +12,13 @@
 
 module.exports = {
     styleUrlPrefix: 'mapbox://styles/mapbox/',
-    styleUrlSuffix: 'v9'
+    styleUrlSuffix: 'v9',
+
+    noAccessTokenErrorMsg: [
+        'Missing Mapbox access token.',
+        'Mapbox trace type require a Mapbox access token to be registered.',
+        'For example:',
+        'Plotly.plot(gd, data, layout, { mapboxAccessToken: \'my-access-token\' });',
+        'More info here: https://www.mapbox.com/help/define-access-token/'
+    ].join('\n')
 };
