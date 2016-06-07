@@ -13,6 +13,84 @@ var customMatchers = require('../assets/custom_matchers');
 describe('scattermapbox defaults', function() {
     'use strict';
 
+    function _supply(traceIn) {
+        var traceOut = { visible: true },
+            defaultColor = '#444',
+            layout = { _dataLength: 1 };
+
+        ScatterMapbox.supplyDefaults(traceIn, traceOut, defaultColor, layout);
+
+        return traceOut;
+    }
+
+    it('should truncate \'lon\' if longer than \'lat\'', function() {
+        var fullTrace = _supply({
+            lon: [1, 2, 3],
+            lat: [2, 3]
+        });
+
+        expect(fullTrace.lon).toEqual([1, 2]);
+        expect(fullTrace.lat).toEqual([2, 3]);
+    });
+
+    it('should truncate \'lat\' if longer than \'lon\'', function() {
+        var fullTrace = _supply({
+            lon: [1, 2, 3],
+            lat: [2, 3, 3, 5]
+        });
+
+        expect(fullTrace.lon).toEqual([1, 2, 3]);
+        expect(fullTrace.lat).toEqual([2, 3, 3]);
+    });
+
+    it('should set \'visible\' to false if \'lat\' and/or \'lon\' has zero length', function() {
+        var fullTrace = _supply({
+            lon: [1, 2, 3],
+            lat: []
+        });
+
+        expect(fullTrace.visible).toEqual(false);
+
+        fullTrace = _supply({
+            lon: null,
+            lat: [1, 2, 3]
+        });
+
+        expect(fullTrace.visible).toEqual(false);
+    });
+
+    it('should set \'marker.color\' and \'marker.size\' to first item if symbol is set to \'circle\'', function() {
+        var base = {
+            mode: 'markers',
+            lon: [1, 2, 3],
+            lat: [2, 3, 3],
+            marker: {
+                color: ['red', 'green', 'blue'],
+                size: [10, 20, 30]
+            }
+        };
+
+        var fullTrace = _supply(Lib.extendDeep({}, base, {
+            marker: { symbol: 'monument' }
+        }));
+
+        expect(fullTrace.marker.color).toEqual('red');
+        expect(fullTrace.marker.size).toEqual(10);
+
+        fullTrace = _supply(Lib.extendDeep({}, base, {
+            marker: { symbol: ['monument', 'music', 'harbor'] }
+        }));
+
+        expect(fullTrace.marker.color).toEqual('red');
+        expect(fullTrace.marker.size).toEqual(10);
+
+        fullTrace = _supply(Lib.extendDeep({}, base, {
+            marker: { symbol: 'circle' }
+        }));
+
+        expect(fullTrace.marker.color).toEqual(['red', 'green', 'blue']);
+        expect(fullTrace.marker.size).toEqual([10, 20, 30]);
+    });
 });
 
 describe('scattermapbox calc', function() {
@@ -187,10 +265,28 @@ describe('scattermapbox convert', function() {
 
         expect(opts.circle.paint['circle-color']).toEqual({
             property: 'circle-color',
-            stops: [[
+            stops: [
+                [0, 'rgb(220, 220, 220)'], [1, '#444'], [2, 'rgb(178, 10, 28)']
+            ]
+        }, 'have correct circle-color stops');
 
-            ]]
+        expect(opts.circle.paint['circle-radius']).toEqual({
+            property: 'circle-radius',
+            stops: [ [0, 5], [1, 10], [2, 0] ]
+        }, 'have correct circle-radius stops');
+
+        var circleProps = opts.circle.geojson.features.map(function(f) {
+            return f.properties;
         });
+
+        // N.B repeated values have same geojson props
+        expect(circleProps).toEqual([
+            { 'circle-color': 0, 'circle-radius': 0 },
+            { 'circle-color': 1, 'circle-radius': 1 },
+            { 'circle-color': 2, 'circle-radius': 2 },
+            { 'circle-color': 1, 'circle-radius': 2 },
+            { 'circle-color': 1, 'circle-radius': 2 }
+        ], 'have correct geojson feature properties');
     });
 
     it('fill + markers + lines traces, should', function() {
@@ -211,7 +307,13 @@ describe('scattermapbox convert', function() {
         expect(opts.fill.geojson.coordinates).toEqual(lineCoords, 'have correct fill coords');
         expect(opts.line.geojson.coordinates).toEqual(lineCoords, 'have correct line coords');
 
+        var circleCoords = opts.circle.geojson.features.map(function(f) {
+            return f.geometry.coordinates;
+        });
 
+        expect(circleCoords).toEqual([
+            [10, 20], [20, 20], [30, 10], [20, 10], [10, 20]
+        ], 'have correct circle coords');
     });
 
     it('for markers + non-circle traces, should', function() {
@@ -221,12 +323,23 @@ describe('scattermapbox convert', function() {
         }));
 
         assertVisibility(opts, ['none', 'none', 'none', 'visible']);
+
+        var symbolProps = opts.symbol.geojson.features.map(function(f) {
+            return [f.properties.symbol, f.properties.text];
+        });
+
+        var expected = opts.symbol.geojson.features.map(function() {
+            return ['monument', ''];
+        });
+
+        expect(symbolProps).toEqual(expected, 'have correct geojson properties');
     });
 
     it('for text + lines traces, should', function() {
         var opts = _convert(Lib.extendFlat({}, base, {
             mode: 'lines+text',
-            connectgaps: true
+            connectgaps: true,
+            text: ['A', 'B', 'C', 'D', 'E', 'F']
         }));
 
         assertVisibility(opts, ['none', 'visible', 'none', 'visible']);
@@ -236,6 +349,42 @@ describe('scattermapbox convert', function() {
         ]];
 
         expect(opts.line.geojson.coordinates).toEqual(lineCoords, 'have correct line coords');
+
+        var actualText = opts.symbol.geojson.features.map(function(f) {
+            return f.properties.text;
+        });
+
+        expect(actualText).toEqual(['A', 'B', 'C', 'F', '']);
+    });
+
+    it('should correctly convert \'textposition\' to \'text-anchor\' and \'text-offset\'', function() {
+        var specs = {
+            'top left': ['top-right', [-1.5, -2.5]],
+            'top center': ['top', [0, -2.5]],
+            'top right': ['top-left', [1.5, -2.5]],
+            'middle left': ['right', [-1.5, 0]],
+            'middle center': ['center', [0, 0]],
+            'middle right': ['left', [1.5, 0]],
+            'bottom left': ['bottom-right', [-1.5, 2.5]],
+            'bottom center': ['bottom', [0, 2.5]],
+            'bottom right': ['bottom-left', [1.5, 2.5]]
+        };
+
+        Object.keys(specs).forEach(function(k) {
+            var spec = specs[k];
+
+            var opts = _convert(Lib.extendFlat({}, base, {
+                textposition: k,
+                mode: 'text+markers',
+                marker: { size: 15 },
+                text: ['A', 'B', 'C']
+            }));
+
+            expect([
+                opts.symbol.layout['text-anchor'],
+                opts.symbol.layout['text-offset']
+            ]).toEqual(spec, '(case ' + k + ')');
+        });
     });
 
     function assertVisibility(opts, expectations) {
@@ -247,12 +396,6 @@ describe('scattermapbox convert', function() {
 
         expect(actual).toEqual(expectations, msg);
     }
-});
-
-describe('scattermapbox plot', function() {
-    'use strict';
-
-
 });
 
 describe('scattermapbox hover', function() {
