@@ -56,20 +56,20 @@ proto.plot = function(calcData, fullLayout, promises) {
     var promise;
 
     if(!self.map) {
-        promise = new Promise(function(resolve) {
-            self.createMap(calcData, fullLayout, resolve);
+        promise = new Promise(function(resolve, reject) {
+            self.createMap(calcData, fullLayout, resolve, reject);
         });
     }
     else {
-        promise = new Promise(function(resolve) {
-            self.updateMap(calcData, fullLayout, resolve);
+        promise = new Promise(function(resolve, reject) {
+            self.updateMap(calcData, fullLayout, resolve, reject);
         });
     }
 
     promises.push(promise);
 };
 
-proto.createMap = function(calcData, fullLayout, resolve) {
+proto.createMap = function(calcData, fullLayout, resolve, reject) {
     var self = this,
         gd = self.gd,
         opts = self.opts;
@@ -86,6 +86,9 @@ proto.createMap = function(calcData, fullLayout, resolve) {
         interactive: !self.isStatic,
         preserveDrawingBuffer: self.isStatic
     });
+
+    self.clearOnError();
+    self.rejectOnError(reject);
 
     map.once('load', function() {
         self.updateData(calcData);
@@ -127,11 +130,14 @@ proto.createMap = function(calcData, fullLayout, resolve) {
 
     map.on('dragstart', unhover);
     map.on('zoomstart', unhover);
+
 };
 
-proto.updateMap = function(calcData, fullLayout, resolve) {
+proto.updateMap = function(calcData, fullLayout, resolve, reject) {
     var self = this,
         map = self.map;
+
+    self.rejectOnError(reject);
 
     var currentStyle = self.getStyle(),
         style = self.opts.style;
@@ -219,6 +225,31 @@ proto.resolveOnRender = function(resolve) {
             resolve();
         }
     });
+};
+
+proto.rejectOnError = function(reject) {
+    var map = this.map;
+
+    function handler() {
+        reject(new Error(constants.mapOnErrorMsg));
+    }
+
+    map.once('error', handler);
+    map.once('style.error', handler);
+    map.once('source.error', handler);
+    map.once('tile.error', handler);
+    map.once('layer.error', handler);
+};
+
+// disable the default error handler
+proto.clearOnError = function() {
+    var map = this.map;
+
+    map.off('error', map.onError);
+    map.off('style.error', map.onError);
+    map.off('source.error', map.onError);
+    map.off('tile.error', map.onError);
+    map.off('layer.error', map.onError);
 };
 
 proto.createFramework = function(fullLayout) {

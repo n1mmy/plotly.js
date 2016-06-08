@@ -1,6 +1,7 @@
 var Plotly = require('@lib');
 var Lib = require('@src/lib');
 
+var constants = require('@src/plots/mapbox/constants');
 // var supplyLayoutDefaults = require('@src/plots/mapbox/layout_defaults');
 
 var d3 = require('d3');
@@ -9,17 +10,61 @@ var destroyGraphDiv = require('../assets/destroy_graph_div');
 var mouseEvent = require('../assets/mouse_event');
 var customMatchers = require('../assets/custom_matchers');
 
+var MAPBOX_ACCESS_TOKEN = require('@build/credentials.json').MAPBOX_ACCESS_TOKEN;
+
 var noop = function() {};
-
-Plotly.setPlotConfig({
-    mapboxAccessToken: require('@build/credentials.json').MAPBOX_ACCESS_TOKEN
-});
-
 
 describe('mapbox defaults', function() {
     'use strict';
 
 //     var layoutIn, layoutOut, fullData;
+});
+
+describe('mapbox credentials', function() {
+    'use strict';
+
+    var dummyToken = 'asfdsa124331wersdsa1321q3';
+    var gd;
+
+    beforeEach(function() {
+        gd = createGraphDiv();
+
+        Plotly.setPlotConfig({
+            mapboxAccessToken: null
+        });
+    });
+
+    afterEach(function() {
+        Plotly.purge(gd);
+        destroyGraphDiv();
+
+        Plotly.setPlotConfig({
+            mapboxAccessToken: MAPBOX_ACCESS_TOKEN
+        });
+    });
+
+    it('should throw error if token is not registered', function() {
+        expect(function() {
+            Plotly.plot(gd, [{
+                type: 'scattermapbox',
+                lon: [10, 20, 30],
+                lat: [10, 20, 30]
+            }]);
+        }).toThrow(new Error(constants.noAccessTokenErrorMsg));
+    });
+
+    it('should throw error if token is invalid', function(done) {
+        Plotly.plot(gd, [{
+            type: 'scattermapbox',
+            lon: [10, 20, 30],
+            lat: [10, 20, 30]
+        }], {}, {
+            mapboxAccessToken: dummyToken
+        }).catch(function(err) {
+            expect(err).toEqual(new Error(constants.mapOnErrorMsg));
+            done();
+        });
+    });
 });
 
 describe('mapbox plots', function() {
