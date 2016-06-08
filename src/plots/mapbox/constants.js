@@ -22,8 +22,5 @@ module.exports = {
         'More info here: https://www.mapbox.com/help/define-access-token/'
     ].join('\n'),
 
-    mapOnErrorMsg: [
-        'Mapbox error.',
-        'Make sure that your mapboxAccessToken is valid'
-    ].join('\n')
+    mapOnErrorMsg: 'Mapbox error.'
 };
