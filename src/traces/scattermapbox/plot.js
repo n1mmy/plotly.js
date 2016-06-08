@@ -72,33 +72,33 @@ function ScatterMapbox(mapbox, uid) {
 var proto = ScatterMapbox.prototype;
 
 proto.update = function update(calcTrace) {
-    var map = this.map;
+    var mapbox = this.mapbox;
 
     var opts = convert(calcTrace);
 
-    setOptions(map, this.idLayerFill, 'setLayoutProperty', opts.fill.layout);
-    setOptions(map, this.idLayerLine, 'setLayoutProperty', opts.line.layout);
-    setOptions(map, this.idLayerCircle, 'setLayoutProperty', opts.circle.layout);
-    setOptions(map, this.idLayerSymbol, 'setLayoutProperty', opts.symbol.layout);
+    mapbox.setOptions(this.idLayerFill, 'setLayoutProperty', opts.fill.layout);
+    mapbox.setOptions(this.idLayerLine, 'setLayoutProperty', opts.line.layout);
+    mapbox.setOptions(this.idLayerCircle, 'setLayoutProperty', opts.circle.layout);
+    mapbox.setOptions(this.idLayerSymbol, 'setLayoutProperty', opts.symbol.layout);
 
     if(isVisible(opts.fill)) {
         this.sourceFill.setData(opts.fill.geojson);
-        setOptions(map, this.idLayerFill, 'setPaintProperty', opts.fill.paint);
+        mapbox.setOptions(this.idLayerFill, 'setPaintProperty', opts.fill.paint);
     }
 
     if(isVisible(opts.line)) {
         this.sourceLine.setData(opts.line.geojson);
-        setOptions(map, this.idLayerLine, 'setPaintProperty', opts.line.paint);
+        mapbox.setOptions(this.idLayerLine, 'setPaintProperty', opts.line.paint);
     }
 
     if(isVisible(opts.circle)) {
         this.sourceCircle.setData(opts.circle.geojson);
-        setOptions(map, this.idLayerCircle, 'setPaintProperty', opts.circle.paint);
+        mapbox.setOptions(this.idLayerCircle, 'setPaintProperty', opts.circle.paint);
     }
 
     if(isVisible(opts.symbol)) {
         this.sourceSymbol.setData(opts.symbol.geojson);
-        setOptions(map, this.idLayerSymbol, 'setPaintProperty', opts.symbol.paint);
+        mapbox.setOptions(this.idLayerSymbol, 'setPaintProperty', opts.symbol.paint);
     }
 };
 
@@ -115,16 +115,6 @@ proto.dispose = function dispose() {
     map.removeSource(this.idSourceCircle);
     map.removeSource(this.idSourceSymbol);
 };
-
-function setOptions(map, id, methodName, opts) {
-    var keys = Object.keys(opts);
-
-    for(var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-
-        map[methodName](id, key, opts[key]);
-    }
-}
 
 function isVisible(layerOpts) {
     return layerOpts.layout.visibility === 'visible';

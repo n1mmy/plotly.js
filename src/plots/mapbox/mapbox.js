@@ -335,6 +335,19 @@ proto.createGeoJSONSource = function() {
     return new mapboxgl.GeoJSONSource({data: blank});
 };
 
+// convenience wrapper to create set multiple layer
+// 'layout' or 'paint options at once.
+proto.setOptions = function(id, methodName, opts) {
+    var map = this.map,
+        keys = Object.keys(opts);
+
+    for(var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+
+        map[methodName](id, key, opts[key]);
+    }
+};
+
 // convenience method to project a [lon, lat] array to pixel coords
 proto.project = function(v) {
     return this.map.project(new mapboxgl.LngLat(v[0], v[1]));
