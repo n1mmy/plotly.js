@@ -9,7 +9,11 @@
 
 'use strict';
 
-var lineAttrs = require('../../traces/scatter/attributes').line;
+var scatterMapboxAttrs = require('../../traces/scattermapbox/attributes');
+var defaultLine = require('../../components/color').defaultLine;
+var extendFlat = require('../../lib').extendFlat;
+
+var lineAttrs = scatterMapboxAttrs.line;
 
 
 module.exports = {
@@ -76,24 +80,47 @@ module.exports = {
     layers: {
         _isLinkedToArray: true,
 
-        description: [
-            ''
-        ].join(' '),
-
         sourcetype: {
             valType: 'enumerated',
-            values: ['geojson', /* 'vector', 'raster', 'image', 'video' */],
-            dflt: 'geojson'
+            values: ['geojson', 'vector'],
+            dflt: 'geojson',
+            role: 'info',
+            description: [
+                'Sets the source type for this layer.',
+                'Support for *raster*, *image* and *video* source types is coming soon.'
+            ].join(' ')
         },
+
         source: {
             valType: 'any',
+            role: 'info',
+            description: [
+                'Sets the source data for this layer.',
+                'Source can be either a URL,',
+                'a geojson object (with `sourcetype` set to *geojson*)',
+                'or an array of tile URLS (with `sourcetype` set to *vector*).'
+            ].join(' ')
+        },
+
+        sourcelayer: {
+            valType: 'string',
+            dflt: '',
+            role: 'info',
+            description: [
+                'Required for *vector* source type that supports multiple layers.',
+                'Specifies the layer to use from a vector tile source.'
+            ].join(' ')
         },
 
         type: {
             valType: 'enumerated',
-            values: ['line', /* 'background', 'symbol', 'raster', 'circle' */ ],
+            values: ['line', 'fill'],
             dflt: 'line',
-            role: 'info'
+            role: 'info',
+            description: [
+                '',
+                'Support for *raster*, *background* types is coming soon.'
+            ].join(' ')
         },
 
         below: {
@@ -101,26 +128,21 @@ module.exports = {
             dflt: '',
             role: 'info',
             description: [
-                'If a value for before is provided, the layer will be inserted',
-                'before the layer with the specified ID. If before is omitted,',
+                'Determines if the layer will be inserted',
+                'before the layer with the specified ID.',
+                'If omitted or set to \'\',',
                 'the layer will be inserted above every existing layer.'
             ].join(' ')
         },
 
         line: {
-            color: lineAttrs.color,
-            width: lineAttrs.width,
-            dash: lineAttrs.dash
+            color: extendFlat({}, lineAttrs.color, {
+                dflt: defaultLine
+            }),
+            width: lineAttrs.width
         },
 
-        fillcolor: {
-            valType: 'color',
-            dflt: 'rgba(0,0,0,0)',
-            role: 'info',
-            description: [
-                'Sets the color filling the layer\'s interior.'
-            ].join(' ')
-        },
+        fillcolor: scatterMapboxAttrs.fillcolor,
 
         opacity: {
             valType: 'number',

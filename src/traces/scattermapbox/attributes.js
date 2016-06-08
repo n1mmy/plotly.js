@@ -51,7 +51,9 @@ module.exports = {
     line: {
         color: lineAttrs.color,
         width: lineAttrs.width,
-        dash: lineAttrs.dash  // TODO
+
+        // TODO
+        dash: lineAttrs.dash
     },
 
     connectgaps: scatterAttrs.connectgaps,

@@ -13,6 +13,7 @@ var mapboxgl = require('mapbox-gl');
 
 var Fx = require('../cartesian/graph_interact');
 var constants = require('./constants');
+var createMapboxLayer = require('./layers');
 
 
 function Mapbox(opts) {
@@ -37,7 +38,7 @@ function Mapbox(opts) {
 
     this.map = null;
     this.traceHash = {};
-    this.layerHash = {};
+    this.layerList = [];
 }
 
 var proto = Mapbox.prototype;
@@ -210,7 +211,7 @@ proto.updateLayout = function(fullLayout) {
     map.setBearing(opts.bearing);
     map.setPitch(opts.pitch);
 
-	this.updateLayers();
+    this.updateLayers();
     this.updateFramework(fullLayout);
     this.map.resize();
 };
@@ -297,11 +298,27 @@ proto.updateFramework = function(fullLayout) {
 };
 
 proto.updateLayers = function() {
-	var opts = this.opts,
-		layers = opts.layers;
+    var opts = this.opts,
+        layers = opts.layers,
+        layerList = this.layerList,
+        i;
 
-	
-}
+    if(layers.length !== layerList.length) {
+        for(i = layerList.length - 1; i > -1; i--) {
+            layerList[i].dispose();
+            layerList[i].pop();
+        }
+
+        for(i = 0; i < layers.length; i++) {
+            layerList.push(createMapboxLayer(this, i, layers[i]));
+        }
+    }
+    else {
+        for(i = 0; i < layers.length; i++) {
+            layerList[i].update(layers[i]);
+        }
+    }
+};
 
 proto.destroy = function() {
     this.map.remove();

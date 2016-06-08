@@ -51,17 +51,23 @@ function handleLayerDefaults(containerIn, containerOut) {
         layerIn = layersIn[i];
         layerOut = {};
 
-        coerce('sourcetype')
-        coerce('source')
+        var sourceType = coerce('sourcetype');
+        coerce('source');
 
+        if(sourceType === 'vector') coerce('sourcelayer');
+
+        // maybe add smart default based off 'fillcolor' ???
         var type = coerce('type');
 
-        if(type === 'line') {
-            coerce('line.color');
-            coerce('line.width');
-            coerce('line.dash');
-            coerce('fillcolor');
+        var lineColor;
+        if(type === 'line' || type === 'fill') {
+            lineColor = coerce('line.color');
         }
+
+        // no way to pass line.width to fill layers
+        if(type === 'line') coerce('line.width');
+
+        if(type === 'fill') coerce('fillcolor', lineColor);
 
         coerce('below');
         coerce('opacity');
