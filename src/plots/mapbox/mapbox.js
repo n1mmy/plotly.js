@@ -88,7 +88,6 @@ proto.createMap = function(calcData, fullLayout, resolve, reject) {
         preserveDrawingBuffer: self.isStatic
     });
 
-    self.clearOnError();
     self.rejectOnError(reject);
 
     map.once('load', function() {
