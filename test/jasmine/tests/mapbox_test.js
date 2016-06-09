@@ -2,7 +2,7 @@ var Plotly = require('@lib');
 var Lib = require('@src/lib');
 
 var constants = require('@src/plots/mapbox/constants');
-// var supplyLayoutDefaults = require('@src/plots/mapbox/layout_defaults');
+var supplyLayoutDefaults = require('@src/plots/mapbox/layout_defaults');
 
 var d3 = require('d3');
 var createGraphDiv = require('../assets/create_graph_div');
@@ -17,7 +17,94 @@ var noop = function() {};
 describe('mapbox defaults', function() {
     'use strict';
 
-//     var layoutIn, layoutOut, fullData;
+    var layoutIn, layoutOut, fullData;
+
+    beforeEach(function() {
+        layoutOut = { font: { color: 'red' } };
+
+        // needs a ternary-ref in a trace in order to be detected
+        fullData = [{ type: 'scattermapbox', subplot: 'mapbox' }];
+    });
+
+    it('should fill empty containers', function() {
+        layoutIn = {};
+
+        supplyLayoutDefaults(layoutIn, layoutOut, fullData);
+        expect(layoutIn).toEqual({ mapbox: {} });
+    });
+
+    it('should copy ref to input container in full (for updating on map move)', function() {
+        var mapbox = { style: 'light '};
+
+        layoutIn = { mapbox: mapbox };
+
+        supplyLayoutDefaults(layoutIn, layoutOut, fullData);
+        expect(layoutOut.mapbox._input).toBe(mapbox);
+    });
+
+    it('should fill layer containers', function() {
+        layoutIn = {
+            mapbox: {
+                layers: [{}, {}]
+            }
+        };
+
+        supplyLayoutDefaults(layoutIn, layoutOut, fullData);
+        expect(layoutOut.mapbox.layers[0].sourcetype).toEqual('geojson');
+        expect(layoutOut.mapbox.layers[1].sourcetype).toEqual('geojson');
+    });
+
+    it('should coerce \'sourcelayer\' only for *vector* \'sourcetype\'', function() {
+        layoutIn = {
+            mapbox: {
+                layers: [{
+                    sourcetype: 'vector',
+                    sourcelayer: 'layer0'
+                }, {
+                    sourcetype: 'geojson',
+                    sourcelayer: 'layer0'
+                }]
+            }
+        };
+
+        supplyLayoutDefaults(layoutIn, layoutOut, fullData);
+        expect(layoutOut.mapbox.layers[0].sourcelayer).toEqual('layer0');
+        expect(layoutOut.mapbox.layers[1].sourcelayer).toBeUndefined();
+    });
+
+    it('should only coerce relevant layer style attributes', function() {
+        layoutIn = {
+            mapbox: {
+                layers: [{
+                    sourcetype: 'vector',
+                    type: 'line',
+                    line: {
+                        color: 'red',
+                        width: 3
+                    },
+                    fillcolor: 'blue'
+                }, {
+                    sourcetype: 'geojson',
+                    type: 'fill',
+                    line: {
+                        color: 'red',
+                        width: 3
+                    },
+                    fillcolor: 'blue'
+                }]
+            }
+        };
+
+        supplyLayoutDefaults(layoutIn, layoutOut, fullData);
+
+        expect(layoutOut.mapbox.layers[0].line.color).toEqual('red');
+        expect(layoutOut.mapbox.layers[0].line.width).toEqual(3);
+        expect(layoutOut.mapbox.layers[0].fillcolor).toBeUndefined();
+
+        expect(layoutOut.mapbox.layers[1].line.color).toEqual('red');
+        expect(layoutOut.mapbox.layers[1].line.width).toBeUndefined();
+        expect(layoutOut.mapbox.layers[1].fillcolor).toEqual('blue');
+    });
 });
 
 describe('mapbox credentials', function() {
