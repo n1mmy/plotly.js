@@ -112,8 +112,11 @@ proto.dispose = function dispose() {
 function isVisible(opts) {
     var source = opts.source;
 
+    // For some weird reason Lib.isPlainObject fails
+    // to detect `source` as a plain object in nw.js 0.12.
+
     return (
-        Lib.isPlainObject(source) ||
+        typeof source === 'object' ||
         (typeof source === 'string' && source.length > 0)
     );
 }
