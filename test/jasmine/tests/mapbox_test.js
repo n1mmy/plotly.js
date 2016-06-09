@@ -11,8 +11,14 @@ var mouseEvent = require('../assets/mouse_event');
 var customMatchers = require('../assets/custom_matchers');
 
 var MAPBOX_ACCESS_TOKEN = require('@build/credentials.json').MAPBOX_ACCESS_TOKEN;
+var TRANSITION_DELAY = 500;
 
 var noop = function() {};
+
+Plotly.setPlotConfig({
+    mapboxAccessToken: MAPBOX_ACCESS_TOKEN
+});
+
 
 describe('mapbox defaults', function() {
     'use strict';
@@ -244,8 +250,6 @@ describe('mapbox plots', function() {
 
     it('should be able to restyle', function(done) {
         function assertMarkerColor(expectations) {
-            var TRANSITION_DELAY = 500;
-
             return new Promise(function(resolve) {
                 setTimeout(function() {
                     var colors = getStyle(gd, 'circle', 'circle-color');
@@ -505,14 +509,23 @@ describe('mapbox plots', function() {
             map = subplot.map;
 
         var sources = map.style.sources,
-            layers = map.style._layers;
+            layers = map.style._layers,
+            uid = subplot.uid;
 
-        var plotlySources = Object.keys(sources).filter(function(k) {
+        var traceSources = Object.keys(sources).filter(function(k) {
             return k.indexOf('-source-') !== -1;
         });
 
-        var plotlyLayers = Object.keys(layers).filter(function(k) {
+        var traceLayers = Object.keys(layers).filter(function(k) {
             return k.indexOf('-layer-') !== -1;
+        });
+
+        var layoutSources = Object.keys(sources).filter(function(k) {
+            return k.indexOf(uid) !== -1;
+        });
+
+        var layoutLayers = Object.keys(layers).filter(function(k) {
+            return k.indexOf(uid) !== -1;
         });
 
         return {
@@ -520,8 +533,10 @@ describe('mapbox plots', function() {
             div: subplot.div,
             sources: sources,
             layers: layers,
-            plotlySources: plotlySources,
-            plotlyLayers: plotlyLayers,
+            traceSources: traceSources,
+            traceLayers: traceLayers,
+            layoutSources: layoutSources,
+            layoutLayers: layoutLayers,
             center: map.getCenter(),
             zoom: map.getZoom(),
             style: map.getStyle()
@@ -538,7 +553,7 @@ describe('mapbox plots', function() {
         modes.forEach(function(mode) {
             var cntPerMode = 0;
 
-            mapInfo.plotlyLayers.forEach(function(l) {
+            mapInfo.traceLayers.forEach(function(l) {
                 var info = mapInfo.layers[l];
 
                 if(l.indexOf(mode) === -1) return;
@@ -562,7 +577,7 @@ describe('mapbox plots', function() {
         var mapInfo = getMapInfo(gd),
             values = [];
 
-        mapInfo.plotlyLayers.forEach(function(l) {
+        mapInfo.traceLayers.forEach(function(l) {
             var info = mapInfo.layers[l];
 
             if(l.indexOf(mode) === -1) return;
@@ -577,7 +592,7 @@ describe('mapbox plots', function() {
         var mapInfo = getMapInfo(gd),
             out = [];
 
-        mapInfo.plotlySources.forEach(function(s) {
+        mapInfo.traceSources.forEach(function(s) {
             var info = mapInfo.sources[s];
 
             if(s.indexOf(mode) === -1) return;
