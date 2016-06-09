@@ -303,10 +303,14 @@ proto.updateLayers = function() {
         layerList = this.layerList,
         i;
 
+    // if the layer arrays don't match,
+    // don't try to be smart,
+    // delete them all, and start all over.
+
     if(layers.length !== layerList.length) {
         for(i = layerList.length - 1; i > -1; i--) {
             layerList[i].dispose();
-            layerList[i].pop();
+            layerList.pop();
         }
 
         for(i = 0; i < layers.length; i++) {
