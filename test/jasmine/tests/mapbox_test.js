@@ -330,6 +330,107 @@ describe('mapbox plots', function() {
         });
     });
 
+    it('should be able to add, update and remove layers', function(done) {
+        var mockWithLayers = require('@mocks/mapbox_layers');
+
+        var layer0 = Lib.extendDeep({}, mockWithLayers.layout.mapbox.layers[0]),
+            layer1 = Lib.extendDeep({}, mockWithLayers.layout.mapbox.layers[1]);
+
+        var mapUpdate = {
+            'mapbox.zoom': mockWithLayers.layout.mapbox.zoom,
+            'mapbox.center.lon': mockWithLayers.layout.mapbox.center.lon,
+            'mapbox.center.lat': mockWithLayers.layout.mapbox.center.lat
+        };
+
+        var styleUpdate0 = {
+            'mapbox.layers[0].fillcolor': 'red',
+            'mapbox.layers[0].line.color': 'blue',
+            'mapbox.layers[0].opacity': 0.3
+        };
+
+        var styleUpdate1 = {
+            'mapbox.layers[1].line.width': 3,
+            'mapbox.layers[1].line.color': 'blue',
+            'mapbox.layers[1].opacity': 0.6
+        };
+
+        function countVisibleLayers(gd) {
+            var mapInfo = getMapInfo(gd);
+
+            var sourceLen = mapInfo.layoutSources.length,
+                layerLen = mapInfo.layoutLayers.length;
+
+            if(sourceLen !== layerLen) return null;
+
+            return layerLen;
+        }
+
+        function assertLayerStyle(gd, expectations, index) {
+            var mapInfo = getMapInfo(gd),
+                layers = mapInfo.layers,
+                layerNames = mapInfo.layoutLayers;
+
+            var layer = layers[layerNames[index]];
+
+            return new Promise(function(resolve) {
+                setTimeout(function() {
+                    Object.keys(expectations).forEach(function(k) {
+                        expect(layer.paint[k]).toEqual(expectations[k]);
+                    });
+                    resolve();
+                }, TRANSITION_DELAY);
+            });
+        }
+
+        expect(countVisibleLayers(gd)).toEqual(0);
+
+        Plotly.relayout(gd, 'mapbox.layers[0]', layer0).then(function() {
+            expect(countVisibleLayers(gd)).toEqual(1);
+
+            return Plotly.relayout(gd, 'mapbox.layers[1]', layer1);
+        }).then(function() {
+            expect(countVisibleLayers(gd)).toEqual(2);
+
+            return Plotly.relayout(gd, mapUpdate);
+        }).then(function() {
+            expect(countVisibleLayers(gd)).toEqual(2);
+
+            return Plotly.relayout(gd, styleUpdate0);
+        }).then(function() {
+            expect(countVisibleLayers(gd)).toEqual(2);
+
+            return assertLayerStyle(gd, {
+                'fill-color': [1, 0, 0, 1],
+                'fill-outline-color': [0, 0, 1, 1],
+                'fill-opacity': 0.3
+            }, 0);
+        }).then(function() {
+            expect(countVisibleLayers(gd)).toEqual(2);
+
+            return Plotly.relayout(gd, styleUpdate1);
+        }).then(function() {
+            expect(countVisibleLayers(gd)).toEqual(2);
+
+            return assertLayerStyle(gd, {
+                'line-width': 3,
+                'line-color': [0, 0, 1, 1],
+                'line-opacity': 0.6
+            }, 1);
+        }).then(function() {
+            expect(countVisibleLayers(gd)).toEqual(2);
+
+            return Plotly.relayout(gd, 'mapbox.layers[1]', 'remove');
+        }).then(function() {
+            expect(countVisibleLayers(gd)).toEqual(1);
+
+            return Plotly.relayout(gd, 'mapbox.layers[0]', 'remove');
+        }).then(function() {
+            expect(countVisibleLayers(gd)).toEqual(0);
+
+            done();
+        });
+    });
+
     it('should be able to update traces', function(done) {
         function assertDataPts(lengths) {
             var lines = getGeoJsonData(gd, 'lines'),
