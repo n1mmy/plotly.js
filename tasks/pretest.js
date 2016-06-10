@@ -13,7 +13,7 @@ if(!mapboxAccessToken) {
 // Create a credentials json file,
 // to be required in jasmine test suites and test dashboard
 var credentials = JSON.stringify({
-    MAPBOX_ACCESS_TOKEN: process.env.MAPBOX_ACCESS_TOKEN
+    MAPBOX_ACCESS_TOKEN: mapboxAccessToken
 }, null, 2);
 
 fs.writeFile(constants.pathToCredentials, credentials, function(err) {
@@ -28,7 +28,7 @@ var setPlotConfig = [
     '/* global Plotly:false */',
     '',
     'Plotly.setPlotConfig({',
-    '    mapboxAccessToken: \'' + process.env.MAPBOX_ACCESS_TOKEN + '\'',
+    '    mapboxAccessToken: \'' + mapboxAccessToken + '\'',
     '});',
     ''
 ].join('\n');
