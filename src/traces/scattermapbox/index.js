@@ -11,14 +11,6 @@
 
 var ScatterMapbox = {};
 
-// For first version:
-//  - Different symbols
-//  - Different line dashes
-//  - no `locations` support
-//  - no 'text' mode support
-//  - limited arrayOk
-//  - support for marker.line (could do it using two concentric circles)
-
 ScatterMapbox.attributes = require('./attributes');
 ScatterMapbox.supplyDefaults = require('./defaults');
 ScatterMapbox.colorbar = require('../scatter/colorbar');
@@ -33,7 +25,7 @@ ScatterMapbox.categories = ['mapbox', 'gl', 'symbols', 'markerColorscale', 'show
 ScatterMapbox.meta = {
     hrName: 'scatter_mapbox',
     description: [
-        'The data visualized as scatter point or lines',
+        'The data visualized as scatter point, lines or marker symbols',
         'on a Mapbox GL geographic map',
         'is provided by longitude/latitude pairs in `lon` and `lat`.'
     ].join(' ')

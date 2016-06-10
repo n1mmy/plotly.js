@@ -34,6 +34,7 @@ function handleDefaults(containerIn, containerOut, coerce) {
 
     handleLayerDefaults(containerIn, containerOut);
 
+    // copy ref to input container to update 'center' and 'zoom' on map move
     containerOut._input = containerIn;
 }
 

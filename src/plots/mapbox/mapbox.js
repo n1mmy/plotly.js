@@ -37,6 +37,7 @@ function Mapbox(opts) {
     this.yaxis = null;
     this.createFramework(fullLayout);
 
+    // state variables used to infer how and what to update
     this.map = null;
     this.styleUrl = null;
     this.traceHash = {};
@@ -244,17 +245,6 @@ proto.rejectOnError = function(reject) {
     map.once('source.error', handler);
     map.once('tile.error', handler);
     map.once('layer.error', handler);
-};
-
-// disable the default error handler
-proto.clearOnError = function() {
-    var map = this.map;
-
-    map.off('error', map.onError);
-    map.off('style.error', map.onError);
-    map.off('source.error', map.onError);
-    map.off('tile.error', map.onError);
-    map.off('layer.error', map.onError);
 };
 
 proto.createFramework = function(fullLayout) {
