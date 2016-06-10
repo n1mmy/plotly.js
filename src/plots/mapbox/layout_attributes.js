@@ -47,7 +47,7 @@ module.exports = {
     },
 
     style: {
-        valType: 'enumerated',
+        valType: 'string',
         values: ['basic', 'streets', 'outdoors', 'light', 'dark', 'satellite', 'satellite-streets'],
         dflt: 'basic',
         description: [

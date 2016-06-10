@@ -13,6 +13,7 @@ var mapboxgl = require('mapbox-gl');
 
 var Fx = require('../cartesian/graph_interact');
 var constants = require('./constants');
+var layoutAttributes = require('./layout_attributes');
 var createMapboxLayer = require('./layers');
 
 
@@ -37,6 +38,7 @@ function Mapbox(opts) {
     this.createFramework(fullLayout);
 
     this.map = null;
+    this.styleUrl = null;
     this.traceHash = {};
     this.layerList = [];
 }
@@ -76,10 +78,13 @@ proto.createMap = function(calcData, fullLayout, resolve, reject) {
         gd = self.gd,
         opts = self.opts;
 
+    // mapbox doesn't have a way to get the current style URL; do it ourselves
+    var styleUrl = self.styleUrl = convertStyleUrl(opts.style);
+
     var map = self.map = new mapboxgl.Map({
         container: self.div,
 
-        style: convertStyleUrl(opts.style),
+        style: styleUrl,
         center: convertCenter(opts.center),
         zoom: opts.zoom,
         bearing: opts.bearing,
@@ -140,11 +145,11 @@ proto.updateMap = function(calcData, fullLayout, resolve, reject) {
 
     self.rejectOnError(reject);
 
-    var currentStyle = self.getStyle(),
-        style = self.opts.style;
+    var styleUrl = convertStyleUrl(self.opts.style);
 
-    if(style !== currentStyle) {
-        map.setStyle(convertStyleUrl(style));
+    if(self.styleUrl !== styleUrl) {
+        self.styleUrl = styleUrl;
+        map.setStyle(styleUrl);
 
         map.style.once('load', function() {
 
@@ -333,15 +338,6 @@ proto.toImage = function() {
     return this.map.getCanvas().toDataURL();
 };
 
-proto.getStyle = function() {
-    var name = this.map.getStyle().name;
-
-    return name
-        .replace('Mapbox ', '')
-        .replace(' ', '-')
-        .toLowerCase();
-};
-
 // convenience wrapper to create blank GeoJSON sources
 // and avoid 'invalid GeoJSON' errors
 proto.createGeoJSONSource = function() {
@@ -375,7 +371,15 @@ proto.project = function(v) {
 };
 
 function convertStyleUrl(style) {
-    return constants.styleUrlPrefix + style + '-' + constants.styleUrlSuffix;
+    var styleValues = layoutAttributes.style.values;
+
+    // if style is part of the 'official' mapbox values,
+    // add URL prefix and suffix
+    if(styleValues.indexOf(style) !== -1) {
+        return constants.styleUrlPrefix + style + '-' + constants.styleUrlSuffix;
+    }
+
+    return style;
 }
 
 function convertCenter(center) {
