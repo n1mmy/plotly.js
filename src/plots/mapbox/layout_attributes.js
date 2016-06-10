@@ -50,31 +50,43 @@ module.exports = {
         valType: 'string',
         values: ['basic', 'streets', 'outdoors', 'light', 'dark', 'satellite', 'satellite-streets'],
         dflt: 'basic',
+        role: 'style',
         description: [
-            ''
+            'Sets the Mapbox map style.',
+            'Either input the defaults Mapbox names or the URL to a custom style.'
         ].join(' ')
     },
     center: {
         lon: {
             valType: 'number',
-            dflt: 0
+            dflt: 0,
+            role: 'info',
+            description: 'Sets the longitude of the center of the map (in degrees East).'
         },
         lat: {
             valType: 'number',
-            dflt: 0
+            dflt: 0,
+            role: 'info',
+            description: 'Sets the latitude of the center of the map (in degrees North).'
         }
     },
     zoom: {
         valType: 'number',
-        dflt: 1
+        dflt: 1,
+        role: 'info',
+        description: 'Sets the zoom level of the map.'
     },
     bearing: {
         valType: 'number',
-        dflt: 0
+        dflt: 0,
+        role: 'info',
+        description: 'Sets the bearing angle of the map (in degrees).'
     },
     pitch: {
         valType: 'number',
-        dflt: 0
+        dflt: 0,
+        role: 'info',
+        description: 'Sets the pitch angle of the map (in degrees).'
     },
 
     layers: {
@@ -107,8 +119,8 @@ module.exports = {
             dflt: '',
             role: 'info',
             description: [
-                'Required for *vector* source type that supports multiple layers.',
-                'Specifies the layer to use from a vector tile source.'
+                'Specifies the layer to use from a vector tile source.',
+                'Required for *vector* source type that supports multiple layers.'
             ].join(' ')
         },
 
@@ -118,7 +130,7 @@ module.exports = {
             dflt: 'line',
             role: 'info',
             description: [
-                '',
+                'Sets the layer type.',
                 'Support for *raster*, *background* types is coming soon.'
             ].join(' ')
         },
