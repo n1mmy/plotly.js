@@ -421,7 +421,7 @@ describe('scattermapbox hover', function() {
             text: ['A', 'B', 'C']
         }];
 
-        Plotly.plot(gd, data).then(done);
+        Plotly.plot(gd, data, { autosize: true }).then(done);
     });
 
     afterAll(function() {
