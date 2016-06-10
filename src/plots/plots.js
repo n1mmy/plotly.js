@@ -305,6 +305,13 @@ plots.resize = function(gd) {
 
             Plotly.plot(gd).then(function() {
                 gd.changed = oldchanged;
+
+                var changes = {
+                    width: gd.layout.width,
+                    height: gd.layout.height
+                }
+
+                gd.emit('plotly_relayout', changes);
                 resolve(gd);
             });
         }, 100);
