@@ -552,6 +552,8 @@ function hover(gd, evt, subplot) {
     // if there's more than one horz bar trace,
     // rotate the labels so they don't overlap
     var rotateLabels = hovermode === 'y' && searchData.length > 1;
+    // XXX nim
+    rotateLabels = false;
 
     hoverData.sort(function(d1, d2) { return d1.distance - d2.distance; });
 
